@@ -1,6 +1,10 @@
 {
+  "builds": [
+    { "src": "sensor-data.js", "use": "@vercel/node" }
+  ],
   "routes": [
     { "src": "/api/sensor-data", "dest": "/sensor-data.js" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
+
