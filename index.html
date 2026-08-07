@@ -3,26 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Laboratory Telemetry Hub | ESP8266 & MongoDB</title>
-  <!-- Modern Google Fonts -->
+  <title>Smart Laboratory Telemetry Hub | Real-Time IoT Analytics</title>
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <!-- Chart.js for real-time graphs -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Background Ambient Glow -->
+  <!-- Background Ambient Glow & Mesh Animation -->
   <div class="bg-glow bg-glow-1"></div>
   <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
 
   <div class="dashboard-container">
     <!-- Header -->
     <header class="header">
       <div class="brand">
-        <div class="logo-icon">⚡</div>
+        <div class="logo-box">
+          <span class="logo-icon">⚡</span>
+        </div>
         <div>
           <h1 class="title">Smart Lab Telemetry Hub</h1>
           <p class="subtitle">Real-time Safety, Security & Environmental Analytics • Vercel + MongoDB Atlas</p>
@@ -54,23 +57,23 @@
       </div>
     </header>
 
-    <!-- Top KPI Cards -->
+    <!-- Top KPI Cards (Balanced Grid) -->
     <section class="kpi-grid">
-      <!-- Temperature & Humidity KPI -->
-      <div class="card kpi-card">
+      <!-- 1. Environment (DHT11) -->
+      <div class="card kpi-card cyan-border-hover">
         <div class="card-header">
           <span class="card-title">Environment (DHT11)</span>
-          <span class="card-icon cyan">🌡️</span>
+          <div class="icon-chip cyan-chip">🌡️</div>
         </div>
         <div class="kpi-dual">
-          <div>
+          <div class="kpi-block">
             <div class="kpi-value-container">
               <span class="kpi-value cyan-text" id="kpiTemp">--</span>
               <span class="kpi-unit">°C</span>
             </div>
             <div class="card-sublabel">Temperature</div>
           </div>
-          <div>
+          <div class="kpi-block align-right">
             <div class="kpi-value-container">
               <span class="kpi-value blue-text" id="kpiHum">--</span>
               <span class="kpi-unit">%</span>
@@ -87,11 +90,11 @@
         </div>
       </div>
 
-      <!-- MQ-2 Gas & Smoke KPI -->
-      <div class="card kpi-card">
+      <!-- 2. Gas & Smoke (MQ-2) -->
+      <div class="card kpi-card orange-border-hover">
         <div class="card-header">
           <span class="card-title">Gas & Smoke (MQ-2)</span>
-          <span class="card-icon orange">💨</span>
+          <div class="icon-chip orange-chip">💨</div>
         </div>
         <div class="kpi-value-container">
           <span class="kpi-value orange-text" id="kpiGasPercent">--</span>
@@ -101,23 +104,23 @@
           <div class="progress-bar-fill orange-fill" id="gasBar" style="width: 0%"></div>
         </div>
         <div class="card-footer">
-          <span>ADC Raw: <strong id="kpiGasRaw">--</strong></span>
+          <span>ADC Raw: <strong id="kpiGasRaw" class="mono-text">--</strong></span>
           <span id="gasStatusTag" class="tag tag-normal">Safe</span>
         </div>
       </div>
 
-      <!-- Ultrasonic Distance KPI -->
-      <div class="card kpi-card">
+      <!-- 3. Distance (HC-SR04) -->
+      <div class="card kpi-card blue-border-hover">
         <div class="card-header">
           <span class="card-title">Distance (HC-SR04)</span>
-          <span class="card-icon cyan">📏</span>
+          <div class="icon-chip blue-chip">📏</div>
         </div>
         <div class="kpi-value-container">
           <span class="kpi-value cyan-text" id="kpiDistance">--</span>
           <span class="kpi-unit">cm</span>
         </div>
         <div class="progress-bar-bg">
-          <div class="progress-bar-fill cyan-fill" id="distanceBar" style="width: 0%"></div>
+          <div class="progress-bar-fill blue-fill" id="distanceBar" style="width: 0%"></div>
         </div>
         <div class="card-footer">
           <span>Alert Limit: &lt; 30 cm</span>
@@ -125,30 +128,30 @@
         </div>
       </div>
 
-      <!-- Motion PIR KPI -->
-      <div class="card kpi-card">
+      <!-- 4. PIR Motion Sensor -->
+      <div class="card kpi-card emerald-border-hover">
         <div class="card-header">
           <span class="card-title">PIR Motion Sensor</span>
-          <span class="card-icon emerald">👁️</span>
+          <div class="icon-chip emerald-chip">👁️</div>
         </div>
         <div class="kpi-value-container">
-          <span class="kpi-value" id="kpiPir">Clear</span>
+          <span class="kpi-value emerald-text" id="kpiPir">Clear</span>
         </div>
         <div class="motion-status-container" id="motionContainer">
           <span class="motion-indicator-dot" id="motionDot"></span>
-          <span id="motionStateText">Awaiting Signal</span>
+          <span id="motionStateText">Zone Clear</span>
         </div>
         <div class="card-footer">
           <span>Digital Input (Pin D6)</span>
-          <span id="lastMotionTime">No motion detected</span>
+          <span id="lastMotionTime" class="mono-text text-muted">No motion detected</span>
         </div>
       </div>
 
-      <!-- MPU6050 Accelerometer KPI -->
-      <div class="card kpi-card">
+      <!-- 5. 3-Axis Accel (MPU6050) -->
+      <div class="card kpi-card purple-border-hover">
         <div class="card-header">
           <span class="card-title">3-Axis Accel (MPU6050)</span>
-          <span class="card-icon purple">🎯</span>
+          <div class="icon-chip purple-chip">🎯</div>
         </div>
         <div class="accel-grid">
           <div class="accel-axis">
@@ -168,24 +171,28 @@
           </div>
         </div>
         <div class="card-footer">
-          <span>Tamper Guard: Earth 9.81 m/s²</span>
+          <span>Tamper: Earth 9.81 m/s²</span>
           <span id="tamperStatusTag" class="tag purple-tag">Stable</span>
         </div>
       </div>
 
-      <!-- Telemetry Info KPI -->
-      <div class="card kpi-card">
+      <!-- 6. Packet Monitor -->
+      <div class="card kpi-card amber-border-hover">
         <div class="card-header">
           <span class="card-title">Packet Monitor</span>
-          <span class="card-icon amber">📡</span>
+          <div class="icon-chip amber-chip">📡</div>
         </div>
         <div class="kpi-value-container">
           <span class="kpi-value amber-text" id="kpiTotalPackets">0</span>
           <span class="kpi-unit">records</span>
         </div>
+        <div class="ingest-info-box">
+          <span class="pulse-ring"></span>
+          <span>MongoDB Atlas Connected</span>
+        </div>
         <div class="card-footer">
           <span>Last Ingest:</span>
-          <span id="lastIngestTime" class="mono-text">Just now</span>
+          <span id="lastIngestTime" class="mono-text amber-text">Just now</span>
         </div>
       </div>
     </section>
@@ -194,7 +201,10 @@
     <section class="charts-grid">
       <div class="card chart-card">
         <div class="card-header">
-          <h2 class="section-title">Temperature & Humidity Trends</h2>
+          <div>
+            <h2 class="section-title">Temperature & Humidity Trends</h2>
+            <p class="section-subtitle">Real-time DHT11 environmental readings stream</p>
+          </div>
           <span class="badge cyan-badge">DHT11 Telemetry</span>
         </div>
         <div class="chart-wrapper">
@@ -204,7 +214,10 @@
 
       <div class="card chart-card">
         <div class="card-header">
-          <h2 class="section-title">Gas Concentration & Distance Stream</h2>
+          <div>
+            <h2 class="section-title">Gas Concentration & Distance Stream</h2>
+            <p class="section-subtitle">Real-time MQ-2 smoke and HC-SR04 proximity stream</p>
+          </div>
           <span class="badge orange-badge">MQ-2 & HC-SR04</span>
         </div>
         <div class="chart-wrapper">
@@ -214,10 +227,13 @@
 
       <div class="card chart-card chart-full">
         <div class="card-header">
-          <h2 class="section-title">3-Axis Acceleration Vector Stream</h2>
+          <div>
+            <h2 class="section-title">3-Axis Acceleration Vector Stream</h2>
+            <p class="section-subtitle">Real-time MPU6050 6-DOF IMU vibration and tilt vector stream</p>
+          </div>
           <span class="badge purple-badge">MPU6050 6-DOF IMU</span>
         </div>
-        <div class="chart-wrapper">
+        <div class="chart-wrapper chart-wrapper-tall">
           <canvas id="accelChart"></canvas>
         </div>
       </div>
@@ -225,12 +241,15 @@
 
     <!-- Data Table Section -->
     <section class="card table-card">
-      <div class="card-header">
+      <div class="card-header flex-wrap">
         <div>
           <h2 class="section-title">Raw Telemetry Packets (MongoDB Collection)</h2>
           <p class="section-subtitle">Displaying recent sensor readings from MongoDB Atlas collection <code class="code-tag">smart_lab_monitoring.smart_lab_telemetry</code></p>
         </div>
-        <div class="mono-text text-muted" id="tableCount">0 Packets Received</div>
+        <div class="table-actions">
+          <input type="text" id="tableSearch" placeholder="🔍 Search records..." class="search-input">
+          <div class="mono-text text-muted" id="tableCount">0 Packets Received</div>
+        </div>
       </div>
 
       <div class="table-wrapper">
