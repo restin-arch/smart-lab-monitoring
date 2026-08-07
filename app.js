@@ -1,6 +1,6 @@
 /**
  * Smart Laboratory Real-Time Analytics Application
- * Polling Engine, Chart.js Integration & MongoDB Table Renderer
+ * Polling Engine, Chart.js Gradient Rendering & Live Table Search
  */
 
 let envChart = null;
@@ -8,24 +8,25 @@ let gasDistChart = null;
 let accelChart = null;
 let pollTimer = null;
 let totalPacketsReceived = 0;
+let rawRecordsCache = [];
 
-// Chart Color Tokens
+// Color Palette Tokens
 const COLORS = {
   cyan: '#38bdf8',
   blue: '#60a5fa',
   orange: '#fb923c',
-  purple: '#a855f7',
+  purple: '#c084fc',
   red: '#f87171',
   green: '#34d399',
   gridLine: 'rgba(255, 255, 255, 0.05)'
 };
 
-// Initialize Charts
+// Initialize Chart.js with Canvas Linear Gradients
 function initCharts() {
   const commonOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 300 },
+    animation: { duration: 400, easing: 'easeOutQuart' },
     scales: {
       x: {
         grid: { color: COLORS.gridLine },
@@ -38,20 +39,37 @@ function initCharts() {
     },
     plugins: {
       legend: {
-        labels: { color: '#f8fafc', font: { family: 'Outfit', size: 12 }, usePointStyle: true }
+        labels: { color: '#f8fafc', font: { family: 'Outfit', size: 12 }, usePointStyle: true, pointStyle: 'circle' }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleFont: { family: 'Outfit', size: 13 },
+        bodyFont: { family: 'JetBrains Mono', size: 12 },
+        borderColor: 'rgba(56, 189, 248, 0.3)',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 10
       }
     }
   };
 
   // 1. Temperature & Humidity Chart
   const envCtx = document.getElementById('envChart').getContext('2d');
+  const tempGrad = envCtx.createLinearGradient(0, 0, 0, 250);
+  tempGrad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+  tempGrad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+  const humGrad = envCtx.createLinearGradient(0, 0, 0, 250);
+  humGrad.addColorStop(0, 'rgba(96, 165, 250, 0.3)');
+  humGrad.addColorStop(1, 'rgba(96, 165, 250, 0.0)');
+
   envChart = new Chart(envCtx, {
     type: 'line',
     data: {
       labels: [],
       datasets: [
-        { label: 'Temp (°C)', borderColor: COLORS.cyan, backgroundColor: 'rgba(56, 189, 248, 0.1)', data: [], fill: true, tension: 0.35, pointRadius: 3 },
-        { label: 'Humidity (%)', borderColor: COLORS.blue, backgroundColor: 'rgba(96, 165, 250, 0.1)', data: [], fill: true, tension: 0.35, pointRadius: 3 }
+        { label: 'Temp (°C)', borderColor: COLORS.cyan, backgroundColor: tempGrad, data: [], fill: true, tension: 0.4, pointRadius: 4, pointHoverRadius: 6 },
+        { label: 'Humidity (%)', borderColor: COLORS.blue, backgroundColor: humGrad, data: [], fill: true, tension: 0.4, pointRadius: 4, pointHoverRadius: 6 }
       ]
     },
     options: commonOptions
@@ -59,13 +77,21 @@ function initCharts() {
 
   // 2. Gas & Distance Chart
   const gasDistCtx = document.getElementById('gasDistChart').getContext('2d');
+  const gasGrad = gasDistCtx.createLinearGradient(0, 0, 0, 250);
+  gasGrad.addColorStop(0, 'rgba(251, 146, 60, 0.35)');
+  gasGrad.addColorStop(1, 'rgba(251, 146, 60, 0.0)');
+
+  const distGrad = gasDistCtx.createLinearGradient(0, 0, 0, 250);
+  distGrad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+  distGrad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
   gasDistChart = new Chart(gasDistCtx, {
     type: 'line',
     data: {
       labels: [],
       datasets: [
-        { label: 'Gas Conc (%)', borderColor: COLORS.orange, backgroundColor: 'rgba(251, 146, 60, 0.1)', data: [], fill: true, tension: 0.35, pointRadius: 3 },
-        { label: 'Distance (cm)', borderColor: COLORS.cyan, backgroundColor: 'rgba(56, 189, 248, 0.1)', data: [], fill: true, tension: 0.35, pointRadius: 3 }
+        { label: 'Gas Conc (%)', borderColor: COLORS.orange, backgroundColor: gasGrad, data: [], fill: true, tension: 0.4, pointRadius: 4 },
+        { label: 'Distance (cm)', borderColor: COLORS.cyan, backgroundColor: distGrad, data: [], fill: true, tension: 0.4, pointRadius: 4 }
       ]
     },
     options: commonOptions
@@ -78,9 +104,9 @@ function initCharts() {
     data: {
       labels: [],
       datasets: [
-        { label: 'Accel X (m/s²)', borderColor: COLORS.red, data: [], tension: 0.2, pointRadius: 2 },
-        { label: 'Accel Y (m/s²)', borderColor: COLORS.green, data: [], tension: 0.2, pointRadius: 2 },
-        { label: 'Accel Z (m/s²)', borderColor: COLORS.blue, data: [], tension: 0.2, pointRadius: 2 }
+        { label: 'Accel X (m/s²)', borderColor: COLORS.red, data: [], tension: 0.25, pointRadius: 3, borderWidth: 2 },
+        { label: 'Accel Y (m/s²)', borderColor: COLORS.green, data: [], tension: 0.25, pointRadius: 3, borderWidth: 2 },
+        { label: 'Accel Z (m/s²)', borderColor: COLORS.purple, data: [], tension: 0.25, pointRadius: 3, borderWidth: 2 }
       ]
     },
     options: commonOptions
@@ -102,6 +128,7 @@ async function fetchTelemetry() {
     }
 
     updateConnectionStatus(true, 'Live Connected');
+    rawRecordsCache = records;
     processTelemetryRecords(records);
 
   } catch (err) {
@@ -110,14 +137,13 @@ async function fetchTelemetry() {
   }
 }
 
-// Process Incoming Array of Telemetry Records
+// Process Telemetry Records & Update KPI Cards & Charts
 function processTelemetryRecords(records) {
-  const latest = records[0]; // Latest record is first (sorted by receivedAt desc)
-  
+  const latest = records[0];
   totalPacketsReceived = records.length;
   document.getElementById('kpiTotalPackets').innerText = totalPacketsReceived;
 
-  // Update Top KPI Cards
+  // Values
   const temp = latest.temperature !== undefined ? latest.temperature : 0;
   const hum  = latest.humidity !== undefined ? latest.humidity : 0;
   const gasPercent = latest.gasPercent !== undefined ? latest.gasPercent : 0;
@@ -233,18 +259,25 @@ function processTelemetryRecords(records) {
   renderTable(records);
 }
 
-// Render MongoDB Telemetry Records Table
+// Render MongoDB Telemetry Table with Live Search Filter
 function renderTable(records) {
   const tbody = document.getElementById('sensorTableBody');
-  document.getElementById('tableCount').innerText = `${records.length} Packets Received`;
+  const searchVal = document.getElementById('tableSearch')?.value.toLowerCase() || '';
 
-  if (!records || records.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No telemetry records found in MongoDB Atlas</td></tr>`;
+  const filtered = records.filter(r => {
+    const text = `${r.device} ${r.temperature} ${r.humidity} ${r.distanceCm} ${r._id}`.toLowerCase();
+    return text.includes(searchVal);
+  });
+
+  document.getElementById('tableCount').innerText = `${filtered.length} Packets Displayed`;
+
+  if (!filtered || filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No matching telemetry records found</td></tr>`;
     return;
   }
 
   let html = '';
-  records.forEach(r => {
+  filtered.forEach(r => {
     const timeStr = new Date(r.receivedAt || Date.now()).toLocaleString();
     const alertsStr = (r.alerts && r.alerts.length > 0) ? r.alerts.join(', ') : 'NORMAL';
     const isAlert = alertsStr !== 'NORMAL' && alertsStr !== 'SYSTEM_NORMAL';
@@ -275,23 +308,24 @@ function updateConnectionStatus(isConnected, text) {
   textEl.innerText = text;
 
   if (isConnected) {
-    statusEl.className = 'status-badge';
-    statusEl.style.borderColor = 'rgba(52, 211, 153, 0.3)';
+    statusEl.style.borderColor = 'rgba(52, 211, 153, 0.4)';
     statusEl.style.color = '#34d399';
+    statusEl.style.background = 'rgba(52, 211, 153, 0.12)';
   } else {
-    statusEl.className = 'status-badge';
-    statusEl.style.borderColor = 'rgba(248, 113, 113, 0.3)';
+    statusEl.style.borderColor = 'rgba(248, 113, 113, 0.4)';
     statusEl.style.color = '#f87171';
+    statusEl.style.background = 'rgba(248, 113, 113, 0.12)';
   }
 }
 
-// Event Listeners & Auto-Polling
+// Event Listeners & Auto-Polling Setup
 document.addEventListener('DOMContentLoaded', () => {
   initCharts();
   fetchTelemetry();
 
   const pollSelect = document.getElementById('pollInterval');
   const refreshBtn = document.getElementById('refreshBtn');
+  const searchInput = document.getElementById('tableSearch');
 
   function startPolling() {
     if (pollTimer) clearInterval(pollTimer);
@@ -303,6 +337,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   pollSelect.addEventListener('change', startPolling);
   refreshBtn.addEventListener('click', fetchTelemetry);
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => renderTable(rawRecordsCache));
+  }
 
   startPolling();
 });
