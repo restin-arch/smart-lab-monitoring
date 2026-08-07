@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Laboratory Real-Time Monitoring Center</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(22, 31, 49, 0.85);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-orange: #f97316;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg-color); color: var(--text-main); padding: 24px; min-height: 100vh; background-image: radial-gradient(circle at top right, #1e1b4b, #0b0f19); }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+        h1 { font-size: 1.9rem; font-weight: 700; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .connection-bar { background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 14px; margin-bottom: 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .connection-bar label { font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
+        .connection-bar input { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 1rem; width: 260px; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; background: var(--accent-cyan); color: #0b0f19; }
+        .btn:hover { opacity: 0.9; transform: scale(1.02); }
+
+        .status-badge { padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-normal { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .status-alarm { background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.5); animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; transition: transform 0.2s, border-color 0.2s; }
+        .card:hover { transform: translateY(-3px); border-color: rgba(255, 255, 255, 0.2); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+        .card-value { font-size: 2.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        .card-subtext { font-size: 0.85rem; color: var(--text-muted); }
+
+        .alert-card { grid-column: 1 / -1; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); display: none; }
+        .alert-card.active { display: block; }
+        .alert-title { color: #f87171; font-weight: 700; font-size: 1.1rem; margin-bottom: 8px; }
+
+        .vector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; text-align: center; }
+        .vector-box { background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .vector-box label { font-size: 0.75rem; color: var(--text-muted); display: block; }
+        .vector-box span { font-weight: 600; font-size: 1rem; color: var(--accent-cyan); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Smart Laboratory Telemetry Hub</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">ESP8266 Live Data Dashboard</p>
+            </div>
+            <div id="sysStatus" class="status-badge status-normal">DISCONNECTED</div>
+        </header>
+
+        <div class="connection-bar">
+            <label for="espIp">ESP8266 IP Address:</label>
+            <input type="text" id="espIp" value="192.168.1.125" placeholder="e.g. 192.168.1.125">
+            <button class="btn" onclick="startPolling()">Connect & Sync</button>
+            <span id="connStatus" style="font-size: 0.85rem; color: var(--text-muted); margin-left: auto;">Enter NodeMCU IP from Serial Monitor</span>
+        </div>
+
+        <div id="alertBanner" class="card alert-card">
+            <div class="alert-title">CRITICAL SAFETY / SECURITY ALARM DETECTED</div>
+            <div id="alertList" style="color: #fca5a5; font-size: 0.95rem;">None</div>
+        </div>
+
+        <div class="grid">
+            <!-- Temperature -->
+            <div class="card">
+                <div class="card-header">TEMPERATURE (DHT11)</div>
+                <div class="card-value"><span id="tempVal">--</span> °C</div>
+                <div class="card-subtext">Threshold: &lt; 35.0 °C</div>
+            </div>
+
+            <!-- Humidity -->
+            <div class="card">
+                <div class="card-header">HUMIDITY (DHT11)</div>
+                <div class="card-value"><span id="humVal">--</span> %</div>
+                <div class="card-subtext">Threshold: &lt; 75.0 %</div>
+            </div>
+
+            <!-- MQ-2 Gas & Smoke -->
+            <div class="card">
+                <div class="card-header">GAS / SMOKE SENSOR (MQ-2)</div>
+                <div class="card-value" id="gasStatus" style="color: var(--accent-green);">SAFE</div>
+                <div class="card-subtext">Raw ADC: <span id="gasRawVal" style="color:var(--text-main); font-weight:600;">--</span> (<span id="gasPercentVal">--</span>%)</div>
+            </div>
+
+            <!-- HC-SR04 Ultrasonic Distance -->
+            <div class="card">
+                <div class="card-header">ULTRASONIC DISTANCE (HC-SR04)</div>
+                <div class="card-value"><span id="distVal">--</span> cm</div>
+                <div class="card-subtext">Status: <span id="proxStatus" style="color: var(--accent-green);">SAFE</span> (Alert &lt; 30 cm)</div>
+            </div>
+
+            <!-- PIR Motion -->
+            <div class="card">
+                <div class="card-header">MOTION DETECTOR (PIR)</div>
+                <div class="card-value" id="motionVal" style="color: var(--accent-green);">CLEAR</div>
+                <div class="card-subtext">Intruder & Activity Presence Detection</div>
+            </div>
+
+            <!-- MPU6050 Accelerometer -->
+            <div class="card">
+                <div class="card-header">ACCELERATION (MPU6050)</div>
+                <div class="vector-grid">
+                    <div class="vector-box"><label>X (m/s²)</label><span id="axVal">0.00</span></div>
+                    <div class="vector-box"><label>Y (m/s²)</label><span id="ayVal">0.00</span></div>
+                    <div class="vector-box"><label>Z (m/s²)</label><span id="azVal">0.00</span></div>
+                </div>
+                <div class="card-subtext" style="margin-top:10px;">Status: <span id="tamperVal" style="color: var(--accent-green);">STABLE</span></div>
+            </div>
+
+            <!-- MPU6050 Gyroscope -->
+            <div class="card">
+                <div class="card-header">GYROSCOPE / TILT (MPU6050)</div>
+                <div class="vector-grid">
+                    <div class="vector-box"><label>X (rad/s)</label><span id="gxVal">0.00</span></div>
+                    <div class="vector-box"><label>Y (rad/s)</label><span id="gyVal">0.00</span></div>
+                    <div class="vector-box"><label>Z (rad/s)</label><span id="gzVal">0.00</span></div>
+                </div>
+                <div class="card-subtext" style="margin-top:10px;">6-DOF Angular Motion Tracking</div>
+            </div>
+
+            <!-- Network Info -->
+            <div class="card">
+                <div class="card-header">SYSTEM & NETWORK</div>
+                <div style="font-size: 1.1rem; margin-bottom: 6px;">Signal: <span id="rssiVal" style="color:var(--accent-cyan);">--</span> dBm</div>
+                <div class="card-subtext">Uptime: <span id="uptimeVal">--</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pollTimer = null;
+
+        async function updateData() {
+            const ip = document.getElementById('espIp').value.trim();
+            const statusEl = document.getElementById('connStatus');
+            
+            if (!ip) {
+                statusEl.innerText = 'Please enter a valid IP address';
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://${ip}/api/data`);
+                const d = await res.json();
+
+                statusEl.innerText = `Connected to http://${ip}/api/data`;
+                statusEl.style.color = '#34d399';
+
+                document.getElementById('tempVal').innerText = d.temperature.toFixed(1);
+                document.getElementById('humVal').innerText = d.humidity.toFixed(1);
+
+                // MQ-2 Gas
+                const gasStatusEl = document.getElementById('gasStatus');
+                gasStatusEl.innerText = d.gasDetected ? '⚠️ GAS/SMOKE LEAK!' : 'SAFE';
+                gasStatusEl.style.color = d.gasDetected ? '#ef4444' : '#10b981';
+                document.getElementById('gasRawVal').innerText = d.gasRaw;
+                document.getElementById('gasPercentVal').innerText = d.gasPercent.toFixed(1);
+
+                // HC-SR04 Ultrasonic
+                document.getElementById('distVal').innerText = d.distanceCm.toFixed(1);
+                const proxEl = document.getElementById('proxStatus');
+                proxEl.innerText = d.proximityAlert ? '🚨 PROXIMITY INTRUSION!' : 'SAFE';
+                proxEl.style.color = d.proximityAlert ? '#ef4444' : '#10b981';
+
+                // Motion
+                const motionEl = document.getElementById('motionVal');
+                motionEl.innerText = d.motion ? '🚨 MOTION DETECTED' : 'CLEAR';
+                motionEl.style.color = d.motion ? '#f97316' : '#10b981';
+
+                // IMU
+                document.getElementById('axVal').innerText = d.ax.toFixed(2);
+                document.getElementById('ayVal').innerText = d.ay.toFixed(2);
+                document.getElementById('azVal').innerText = d.az.toFixed(2);
+                document.getElementById('gxVal').innerText = d.gx.toFixed(2);
+                document.getElementById('gyVal').innerText = d.gy.toFixed(2);
+                document.getElementById('gzVal').innerText = d.gz.toFixed(2);
+
+                const tamperEl = document.getElementById('tamperVal');
+                tamperEl.innerText = d.tamper ? '⚠️ VIBRATION/TAMPER' : 'STABLE';
+                tamperEl.style.color = d.tamper ? '#ef4444' : '#10b981';
+
+                // System Status & Alert Banner
+                const sysStatus = document.getElementById('sysStatus');
+                const alertBanner = document.getElementById('alertBanner');
+                const alertList = document.getElementById('alertList');
+
+                if (d.hasAlert) {
+                    sysStatus.innerText = 'ALARM ACTIVE';
+                    sysStatus.className = 'status-badge status-alarm';
+                    alertBanner.classList.add('active');
+                    alertList.innerText = d.alerts.join(' | ');
+                } else {
+                    sysStatus.innerText = 'SYSTEM NORMAL';
+                    sysStatus.className = 'status-badge status-normal';
+                    alertBanner.classList.remove('active');
+                }
+                
+                document.getElementById('rssiVal').innerText = d.wifiRssi;
+                document.getElementById('uptimeVal').innerText = Math.floor(d.uptime) + 's';
+
+            } catch (err) {
+                statusEl.innerText = `Connecting... Make sure your PC is on the same WiFi as ${ip}`;
+                statusEl.style.color = '#f87171';
+            }
+        }
+
+        function startPolling() {
+            if (pollTimer) clearInterval(pollTimer);
+            updateData();
+            pollTimer = setInterval(updateData, 1000);
+        }
+
+        startPolling();
+    </script>
+</body>
+</html>
