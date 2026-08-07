@@ -3,278 +3,303 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Laboratory Telemetry Hub | Real-Time IoT Analytics</title>
+  <title>SYSTEM OVERVIEW | Smart Lab Cyberpunk Telemetry</title>
   <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Background Ambient Glow & Mesh Animation -->
-  <div class="bg-glow bg-glow-1"></div>
-  <div class="bg-glow bg-glow-2"></div>
-  <div class="bg-glow bg-glow-3"></div>
+  <!-- Ambient Background Glow & Sci-Fi Grids -->
+  <div class="bg-glow bg-glow-cyan"></div>
+  <div class="bg-glow bg-glow-purple"></div>
+  <div class="grid-overlay"></div>
 
-  <div class="dashboard-container">
-    <!-- Header -->
-    <header class="header">
-      <div class="brand">
-        <div class="logo-box">
-          <span class="logo-icon">⚡</span>
-        </div>
+  <div class="futuristic-container">
+    
+    <!-- Top Header Navigation Bar -->
+    <header class="cyber-header">
+      <div class="header-left">
+        <div class="crown-icon">👑</div>
         <div>
-          <h1 class="title">Smart Lab Telemetry Hub</h1>
-          <p class="subtitle">Real-time Safety, Security & Environmental Analytics • Vercel + MongoDB Atlas</p>
+          <h1 class="header-title">SYSTEM OVERVIEW</h1>
+          <div class="breadcrumb">SYSTEM OVERVIEW / MODULE STATUS / LAB-NODE-01</div>
         </div>
       </div>
 
-      <div class="header-controls">
-        <div class="status-badge" id="connectionStatus">
+      <div class="header-right">
+        <div class="status-badge-glow" id="connectionStatus">
           <span class="pulse-dot"></span>
-          <span id="statusText">Connecting...</span>
+          <span id="statusText">CONNECTING...</span>
         </div>
-
-        <div class="control-group">
-          <label for="pollInterval">Poll Rate:</label>
-          <select id="pollInterval" class="select-input">
-            <option value="2000" selected>Every 2s</option>
-            <option value="5000">Every 5s</option>
-            <option value="10000">Every 10s</option>
-            <option value="0">Paused</option>
-          </select>
+        <div class="pill-group">
+          <button class="pill-btn active">MODULE STATUS</button>
+          <button class="pill-btn">SYSTEM OVERVIEW</button>
         </div>
-
-        <button id="refreshBtn" class="btn btn-primary">
-          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-          </svg>
-          Refresh Now
-        </button>
       </div>
     </header>
 
-    <!-- Top KPI Cards (Balanced Grid) -->
-    <section class="kpi-grid">
-      <!-- 1. Environment (DHT11) -->
-      <div class="card kpi-card cyan-border-hover">
-        <div class="card-header">
-          <span class="card-title">Environment (DHT11)</span>
-          <div class="icon-chip cyan-chip">🌡️</div>
+    <!-- Main Dashboard Sci-Fi Grid Layout -->
+    <main class="sci-fi-grid">
+      
+      <!-- LEFT COLUMN: System Metrics & Gas Module -->
+      <div class="grid-col col-left">
+        
+        <!-- Card 1: Main Metric Node Card -->
+        <div class="cyber-card card-metric">
+          <div class="cyber-badge-tag">SYSTEM OVERVIEW</div>
+          <h2 class="card-headline">NODE HEALTH & RSSI</h2>
+          <div class="big-metric-value" id="kpiRssi">-55 <span class="metric-unit">dBm</span></div>
+          <div class="metric-progress-bg">
+            <div class="metric-progress-fill" id="rssiBar" style="width: 85%"></div>
+          </div>
+          <div class="card-footer-info">
+            <span>24/7 Telemetry Sync</span>
+            <span class="cyan-text" id="kpiUptime">UPTIME: 100%</span>
+          </div>
         </div>
-        <div class="kpi-dual">
-          <div class="kpi-block">
-            <div class="kpi-value-container">
-              <span class="kpi-value cyan-text" id="kpiTemp">--</span>
-              <span class="kpi-unit">°C</span>
+
+        <!-- Card 2: Gas & Smoke Module Card -->
+        <div class="cyber-card card-metric">
+          <div class="cyber-badge-tag badge-purple">MODULE STATUS</div>
+          <h2 class="card-headline">GAS & SMOKE LEAK</h2>
+          <div class="dual-metric-row">
+            <div>
+              <div class="big-metric-value purple-text" id="kpiGasPercent">18.0<span class="metric-unit">%</span></div>
+              <div class="card-sublabel">MQ-2 CONCENTRATION</div>
             </div>
-            <div class="card-sublabel">Temperature</div>
-          </div>
-          <div class="kpi-block align-right">
-            <div class="kpi-value-container">
-              <span class="kpi-value blue-text" id="kpiHum">--</span>
-              <span class="kpi-unit">%</span>
+            <div class="text-right">
+              <div class="small-metric-value" id="kpiGasRaw">185</div>
+              <div class="card-sublabel">ADC RAW</div>
             </div>
-            <div class="card-sublabel">Humidity</div>
+          </div>
+          <div class="card-mini-footer">
+            <div class="status-box box-safe" id="gasStatusBox">SAFE • NO SMOKE</div>
           </div>
         </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill cyan-fill" id="tempBar" style="width: 0%"></div>
-        </div>
-        <div class="card-footer">
-          <span>Threshold: &lt; 35.0 °C</span>
-          <span id="tempStatus" class="tag tag-normal">Normal</span>
-        </div>
+
       </div>
 
-      <!-- 2. Gas & Smoke (MQ-2) -->
-      <div class="card kpi-card orange-border-hover">
-        <div class="card-header">
-          <span class="card-title">Gas & Smoke (MQ-2)</span>
-          <div class="icon-chip orange-chip">💨</div>
-        </div>
-        <div class="kpi-value-container">
-          <span class="kpi-value orange-text" id="kpiGasPercent">--</span>
-          <span class="kpi-unit">%</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill orange-fill" id="gasBar" style="width: 0%"></div>
-        </div>
-        <div class="card-footer">
-          <span>ADC Raw: <strong id="kpiGasRaw" class="mono-text">--</strong></span>
-          <span id="gasStatusTag" class="tag tag-normal">Safe</span>
-        </div>
-      </div>
-
-      <!-- 3. Distance (HC-SR04) -->
-      <div class="card kpi-card blue-border-hover">
-        <div class="card-header">
-          <span class="card-title">Distance (HC-SR04)</span>
-          <div class="icon-chip blue-chip">📏</div>
-        </div>
-        <div class="kpi-value-container">
-          <span class="kpi-value cyan-text" id="kpiDistance">--</span>
-          <span class="kpi-unit">cm</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill blue-fill" id="distanceBar" style="width: 0%"></div>
-        </div>
-        <div class="card-footer">
-          <span>Alert Limit: &lt; 30 cm</span>
-          <span id="distanceStatus" class="tag tag-normal">Normal</span>
-        </div>
-      </div>
-
-      <!-- 4. PIR Motion Sensor -->
-      <div class="card kpi-card emerald-border-hover">
-        <div class="card-header">
-          <span class="card-title">PIR Motion Sensor</span>
-          <div class="icon-chip emerald-chip">👁️</div>
-        </div>
-        <div class="kpi-value-container">
-          <span class="kpi-value emerald-text" id="kpiPir">Clear</span>
-        </div>
-        <div class="motion-status-container" id="motionContainer">
-          <span class="motion-indicator-dot" id="motionDot"></span>
-          <span id="motionStateText">Zone Clear</span>
-        </div>
-        <div class="card-footer">
-          <span>Digital Input (Pin D6)</span>
-          <span id="lastMotionTime" class="mono-text text-muted">No motion detected</span>
-        </div>
-      </div>
-
-      <!-- 5. 3-Axis Accel (MPU6050) -->
-      <div class="card kpi-card purple-border-hover">
-        <div class="card-header">
-          <span class="card-title">3-Axis Accel (MPU6050)</span>
-          <div class="icon-chip purple-chip">🎯</div>
-        </div>
-        <div class="accel-grid">
-          <div class="accel-axis">
-            <span class="axis-label text-x">X-Axis</span>
-            <span class="axis-value" id="kpiAx">0.00</span>
-            <span class="axis-unit">m/s²</span>
+      <!-- CENTER COLUMN: Large Telemetry Arc Gauge Module -->
+      <div class="grid-col col-center">
+        <div class="cyber-card card-gauge-center">
+          <div class="gauge-header">
+            <div>
+              <h2 class="gauge-title">TELEMETRY MODULE</h2>
+              <div class="gauge-subtitle">SYSTEM OVERVIEW</div>
+            </div>
+            <span class="cyan-badge">SYSTEM OVERVIEW</span>
           </div>
-          <div class="accel-axis">
-            <span class="axis-label text-y">Y-Axis</span>
-            <span class="axis-value" id="kpiAy">0.00</span>
-            <span class="axis-unit">m/s²</span>
+
+          <!-- Radial Circular Arc Gauge -->
+          <div class="radial-gauge-wrapper">
+            <svg class="gauge-svg" viewBox="0 0 300 300">
+              <!-- Radial Ticks & Outer Ring -->
+              <circle class="gauge-track-bg" cx="150" cy="150" r="120" />
+              <circle class="gauge-arc-fill" id="gaugeArc" cx="150" cy="150" r="120" />
+            </svg>
+            
+            <!-- Gauge Ticks Markers -->
+            <div class="gauge-tick t-0">0°C</div>
+            <div class="gauge-tick t-25">15°C</div>
+            <div class="gauge-tick t-50">30°C</div>
+            <div class="gauge-tick t-75">45°C</div>
+            <div class="gauge-tick t-100">60°C</div>
+
+            <!-- Gauge Center Value -->
+            <div class="gauge-center-content">
+              <div class="gauge-big-number" id="gaugeTempValue">27.4</div>
+              <div class="gauge-unit-label">°C</div>
+              <div class="gauge-caption">SYSTEM OVERVIEW</div>
+            </div>
           </div>
-          <div class="accel-axis">
-            <span class="axis-label text-z">Z-Axis</span>
-            <span class="axis-value" id="kpiAz">0.00</span>
-            <span class="axis-unit">m/s²</span>
+
+          <!-- Dual Gauge Footers -->
+          <div class="gauge-dual-chips">
+            <div class="chip-item">
+              <div class="chip-label">SYSTEM OVERVIEW</div>
+              <div class="chip-val" id="gaugeHumVal">58.2% HUM</div>
+            </div>
+            <div class="chip-item">
+              <div class="chip-label">SYSTEM OVERVIEW</div>
+              <div class="chip-val" id="gaugeFreqVal">50.02 Hz</div>
+            </div>
           </div>
         </div>
-        <div class="card-footer">
-          <span>Tamper: Earth 9.81 m/s²</span>
-          <span id="tamperStatusTag" class="tag purple-tag">Stable</span>
+      </div>
+
+      <!-- RIGHT COLUMN: Main Analytics Chart -->
+      <div class="grid-col col-right">
+        <div class="cyber-card card-chart-main">
+          <div class="chart-header-row">
+            <div>
+              <h2 class="gauge-title">ANALYTICS DASHBOARD</h2>
+              <div class="gauge-subtitle">SYSTEM OVERVIEW</div>
+            </div>
+            <div class="time-filter-pills">
+              <button class="time-pill">DAY</button>
+              <button class="time-pill">WEEK</button>
+              <button class="time-pill active">LIVE</button>
+              <div class="pill-number-badge">14,250</div>
+            </div>
+          </div>
+
+          <div class="main-chart-container">
+            <canvas id="sciFiChart"></canvas>
+          </div>
         </div>
       </div>
 
-      <!-- 6. Packet Monitor -->
-      <div class="card kpi-card amber-border-hover">
-        <div class="card-header">
-          <span class="card-title">Packet Monitor</span>
-          <div class="icon-chip amber-chip">📡</div>
-        </div>
-        <div class="kpi-value-container">
-          <span class="kpi-value amber-text" id="kpiTotalPackets">0</span>
-          <span class="kpi-unit">records</span>
-        </div>
-        <div class="ingest-info-box">
-          <span class="pulse-ring"></span>
-          <span>MongoDB Atlas Connected</span>
-        </div>
-        <div class="card-footer">
-          <span>Last Ingest:</span>
-          <span id="lastIngestTime" class="mono-text amber-text">Just now</span>
+    </main>
+
+    <!-- Bottom Row Layout -->
+    <section class="bottom-sci-fi-grid">
+      
+      <!-- Bottom Left: Wellness Analytics Table (Sparklines) -->
+      <div class="cyber-card col-bottom-left">
+        <div class="card-headline-sm">SYSTEM OVERVIEW</div>
+        <div class="gauge-subtitle mb-15">WELLNESS ANALYTICS</div>
+
+        <div class="spark-table">
+          <!-- Row 1: Motion -->
+          <div class="spark-row">
+            <span class="spark-label">PIR MOTION</span>
+            <span class="spark-status status-red" id="pirStatusSpark">CLEAR</span>
+            <div class="spark-line-canvas">
+              <svg class="spark-svg" viewBox="0 0 100 20">
+                <path d="M0,15 L20,15 L25,3 L30,17 L35,15 L100,15" class="spark-path red-path"/>
+              </svg>
+            </div>
+            <span class="spark-val" id="pirValText">CLEAR</span>
+          </div>
+
+          <!-- Row 2: Distance -->
+          <div class="spark-row">
+            <span class="spark-label">DISTANCE</span>
+            <span class="spark-status status-orange" id="distStatusSpark">142.5 cm</span>
+            <div class="spark-line-canvas">
+              <svg class="spark-svg" viewBox="0 0 100 20">
+                <path d="M0,10 L30,10 L35,18 L40,4 L45,10 L100,10" class="spark-path orange-path"/>
+              </svg>
+            </div>
+            <span class="spark-val" id="distValText">NORMAL</span>
+          </div>
+
+          <!-- Row 3: Vibration -->
+          <div class="spark-row">
+            <span class="spark-label">MPU TAMPER</span>
+            <span class="spark-status status-green" id="tamperStatusSpark">STABLE</span>
+            <div class="spark-line-canvas">
+              <svg class="spark-svg" viewBox="0 0 100 20">
+                <path d="M0,12 L40,12 L45,8 L50,15 L55,12 L100,12" class="spark-path green-path"/>
+              </svg>
+            </div>
+            <span class="spark-val" id="tamperValText">2.4 MW</span>
+          </div>
         </div>
       </div>
+
+      <!-- Bottom Right: Multi-color Progress Health Bars -->
+      <div class="cyber-card col-bottom-right">
+        <div class="card-headline-sm">SYSTEM OVERVIEW</div>
+        <div class="gauge-subtitle mb-15">SYSTEM HEALTH & THRESHOLDS</div>
+
+        <div class="health-bars-stack">
+          <!-- Bar 1: Temp -->
+          <div class="health-bar-item">
+            <div class="health-bar-header">
+              <span>TEMPERATURE LOAD</span>
+              <span class="cyan-text" id="barTempText">54.8%</span>
+            </div>
+            <div class="health-track">
+              <div class="health-fill fill-cyan" id="barTempFill" style="width: 54.8%"></div>
+            </div>
+          </div>
+
+          <!-- Bar 2: Hum -->
+          <div class="health-bar-item">
+            <div class="health-bar-header">
+              <span>HUMIDITY RATIO</span>
+              <span class="purple-text" id="barHumText">58.2%</span>
+            </div>
+            <div class="health-track">
+              <div class="health-fill fill-purple" id="barHumFill" style="width: 58.2%"></div>
+            </div>
+          </div>
+
+          <!-- Bar 3: Gas -->
+          <div class="health-bar-item">
+            <div class="health-bar-header">
+              <span>GAS CONCENTRATION</span>
+              <span class="orange-text" id="barGasText">18.0%</span>
+            </div>
+            <div class="health-track">
+              <div class="health-fill fill-orange" id="barGasFill" style="width: 18.0%"></div>
+            </div>
+          </div>
+
+          <!-- Bar 4: Distance -->
+          <div class="health-bar-item">
+            <div class="health-bar-header">
+              <span>PROXIMITY RANGE</span>
+              <span class="green-text" id="barDistText">71.2%</span>
+              <span class="warning-icon">⚠️</span>
+            </div>
+            <div class="health-track">
+              <div class="health-fill fill-green" id="barDistFill" style="width: 71.2%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-sys-id">
+          <span>SYSTEM OVERVIEW</span>
+          <span class="mono-text text-muted">SYS.ID: 9482-A</span>
+        </div>
+      </div>
+
     </section>
 
-    <!-- Charts Section -->
-    <section class="charts-grid">
-      <div class="card chart-card">
-        <div class="card-header">
-          <div>
-            <h2 class="section-title">Temperature & Humidity Trends</h2>
-            <p class="section-subtitle">Real-time DHT11 environmental readings stream</p>
-          </div>
-          <span class="badge cyan-badge">DHT11 Telemetry</span>
-        </div>
-        <div class="chart-wrapper">
-          <canvas id="envChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="card-header">
-          <div>
-            <h2 class="section-title">Gas Concentration & Distance Stream</h2>
-            <p class="section-subtitle">Real-time MQ-2 smoke and HC-SR04 proximity stream</p>
-          </div>
-          <span class="badge orange-badge">MQ-2 & HC-SR04</span>
-        </div>
-        <div class="chart-wrapper">
-          <canvas id="gasDistChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card chart-full">
-        <div class="card-header">
-          <div>
-            <h2 class="section-title">3-Axis Acceleration Vector Stream</h2>
-            <p class="section-subtitle">Real-time MPU6050 6-DOF IMU vibration and tilt vector stream</p>
-          </div>
-          <span class="badge purple-badge">MPU6050 6-DOF IMU</span>
-        </div>
-        <div class="chart-wrapper chart-wrapper-tall">
-          <canvas id="accelChart"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <!-- Data Table Section -->
-    <section class="card table-card">
-      <div class="card-header flex-wrap">
+    <!-- Telemetry Packets Data Table Section -->
+    <section class="cyber-card col-full-width">
+      <div class="chart-header-row">
         <div>
-          <h2 class="section-title">Raw Telemetry Packets (MongoDB Collection)</h2>
-          <p class="section-subtitle">Displaying recent sensor readings from MongoDB Atlas collection <code class="code-tag">smart_lab_monitoring.smart_lab_telemetry</code></p>
+          <h2 class="gauge-title">RAW TELEMETRY PACKETS (MONGODB ATLAS)</h2>
+          <div class="gauge-subtitle">COLLECTION: smart_lab_monitoring.smart_lab_telemetry</div>
         </div>
-        <div class="table-actions">
-          <input type="text" id="tableSearch" placeholder="🔍 Search records..." class="search-input">
-          <div class="mono-text text-muted" id="tableCount">0 Packets Received</div>
+        <div class="time-filter-pills">
+          <input type="text" id="tableSearch" placeholder="🔍 Filter logs..." class="cyber-search-input">
+          <div class="pill-number-badge" id="tableCount">2 PACKETS</div>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table class="data-table">
+      <div class="cyber-table-wrapper">
+        <table class="cyber-table">
           <thead>
             <tr>
-              <th>Timestamp</th>
-              <th>Temp (°C)</th>
-              <th>Humidity (%)</th>
-              <th>Gas ADC (%)</th>
-              <th>Distance (cm)</th>
-              <th>PIR Motion</th>
-              <th>Accel (X, Y, Z)</th>
-              <th>Active Alerts</th>
-              <th>Document ID</th>
+              <th>TIMESTAMP</th>
+              <th>TEMP (°C)</th>
+              <th>HUMIDITY (%)</th>
+              <th>GAS ADC (%)</th>
+              <th>DISTANCE (CM)</th>
+              <th>PIR MOTION</th>
+              <th>ACCEL (X, Y, Z)</th>
+              <th>ALERTS</th>
+              <th>DOCUMENT ID</th>
             </tr>
           </thead>
           <tbody id="sensorTableBody">
             <tr>
-              <td colspan="9" class="empty-state">Loading sensor telemetry data...</td>
+              <td colspan="9" class="empty-state">Loading telemetry packets...</td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
+
   </div>
 
   <script src="app.js"></script>
